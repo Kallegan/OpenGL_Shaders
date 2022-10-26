@@ -6,6 +6,30 @@
 #include <string>
 #include <sstream>
 
+#define ASSERT(x) if (!(x)) __debugbreak();
+
+
+#define GLCall(x) GLClearError();\
+    x;\
+    ASSERT(GLLogCall(#x, __FILE__, __LINE__))
+
+
+static void GLClearError() //clear all the errors.
+{
+    while (glGetError() != GL_NO_ERROR);
+}
+
+static bool GLLogCall(const char* function, const char* file, int line)
+{
+    while (GLenum error = glGetError())
+    {
+        std::cout << "[OpenGL Error] (" << error << "): " << function << " " << file << ":" << line << std::endl;
+        return false;
+    }
+    return true;
+}
+
+
 
 struct ShaderProgramSource
 {
@@ -139,7 +163,7 @@ int main(void)
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
 
 
-    unsigned int ibo; //index buffer object
+    unsigned int ibo; //index buffer object. Current use allows call positions index to avoid same position float when using same location.
     glGenBuffers(1, &ibo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
@@ -148,10 +172,10 @@ int main(void)
    
     ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
 
-    std::cout << "Vertex: " << std::endl;
-    std::cout << source.VertexSource << std::endl;
-    std::cout << "Fragment: " << std::endl;
-    std::cout << source.FragmentSource << std::endl;
+    //std::cout << "Vertex: " << std::endl;
+    //std::cout << source.VertexSource << std::endl;
+    //std::cout << "Fragment: " << std::endl;
+    //std::cout << source.FragmentSource << std::endl;
 
 
     unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
@@ -162,9 +186,10 @@ int main(void)
     {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
-
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
        
+        
+        GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));     
+        
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
