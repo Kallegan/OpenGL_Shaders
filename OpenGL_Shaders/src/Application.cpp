@@ -46,10 +46,10 @@ int main(void)
     {
         float positions[] = //float array of positions.
         {
-            -.5f, -.5f, // 0
-             .5f, -.5f, // 1
-             .5f,  .5f, // 2
-            -.5f,  .5f, // 3   
+            -0.5f, -0.5f, 0.0f, 0.0f,                 // 0
+             0.5f, -0.5f, 1.0f, 0.0f,                // 1
+             0.5f,  0.5f, 1.0f, 1.0f,               // 2
+            -0.5f,  0.5f, 0.0f, 1.0f               // 3   
         };
 
         unsigned int indices[] = //index buffer
@@ -58,14 +58,18 @@ int main(void)
             3, 2, 0
         };
 
+        GLCall(glEnable(GL_BLEND));
+        GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));       
+
         unsigned int vao;
         GLCall(glGenVertexArrays(1, &vao));
         GLCall(glBindVertexArray(vao));
 
         VertexArray va;
-        VertexBuffer vb(positions, 4 * 2 * sizeof(float));
+        VertexBuffer vb(positions, 4 * 4 * sizeof(float));
 
         VertexBufferLayout layout;
+        layout.Push<float>(2); 
         layout.Push<float>(2);
         va.AddBuffer(vb, layout);
 
