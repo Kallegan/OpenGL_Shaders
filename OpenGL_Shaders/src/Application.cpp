@@ -1,15 +1,14 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <sstream>
 
 #include "Renderer.h"
-
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "VertexArray.h"
 
 struct ShaderProgramSource
 {
@@ -112,8 +111,7 @@ int main(void)
         glfwTerminate();
         return -1;
     }
-
-    /* Make the window's context current. */
+        
     glfwMakeContextCurrent(window);
 
     glfwSwapInterval(1); //vsync / refreshrate sync.
@@ -141,26 +139,19 @@ int main(void)
         GLCall(glGenVertexArrays(1, &vao));
         GLCall(glBindVertexArray(vao));
 
+        VertexArray va;
         VertexBuffer vb(positions, 4 * 2 * sizeof(float));
 
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0); //links buffer with vertex array.
+        VertexBufferLayout layout;
+        layout.Push<float>(2);
+        va.AddBuffer(vb, layout);
 
-
+        
 
         IndexBuffer ib(indices, 6);
 
-
-
-
         ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
-
-        //std::cout << "Vertex: " << std::endl;
-        //std::cout << source.VertexSource << std::endl;
-        //std::cout << "Fragment: " << std::endl;
-        //std::cout << source.FragmentSource << std::endl;
-
-
+               
         unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
         GLCall(glUseProgram(shader));
 
@@ -178,18 +169,17 @@ int main(void)
 
         float r = 0.0f;
         float increment = 0.05f;
-
-        /* Loop until the user closes the window */
+        
         while (!glfwWindowShouldClose(window))
-        {
-            /* Render here */
+        {            
             glClear(GL_COLOR_BUFFER_BIT);
 
             GLCall(glUseProgram(shader));
             GLCall(glUniform4f(location, r, 0.3f, 0.8f, 1.0f)); //set shader data.           
 
-            GLCall(glBindVertexArray(vao));
+            va.Bind();
             ib.Bind();
+            
 
             GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 
