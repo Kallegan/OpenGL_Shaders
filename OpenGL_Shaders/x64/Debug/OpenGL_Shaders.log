@@ -2,6 +2,7 @@
   IndexBuffer.cpp
   Renderer.cpp
   Shader.cpp
+  Texture.cpp
   VertexArray.cpp
 D:\OpenGL\OpenGL_Shaders\src\VertexArray.cpp(30,1): warning C4312: 'type cast': conversion from 'unsigned int' to 'const void *' of greater size
   VertexBuffer.cpp

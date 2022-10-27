@@ -12,6 +12,7 @@
 #include "IndexBuffer.h"
 #include "VertexArray.h"
 #include "Shader.h"
+#include "Texture.h"
 
 
 
@@ -96,6 +97,9 @@ int main(void)
             shader.Bind();
             shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
           
+            Texture texture("res/textures/1.png");
+            texture.Bind();
+            shader.SetUniform1i("u_Texture", 0);
 
             renderer.Draw(va, ib, shader);
 
