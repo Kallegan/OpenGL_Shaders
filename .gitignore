@@ -31,5 +31,7 @@
 *.out
 *.app
 
-/src/vendor/glm
-*.ipch
+Debug/
+/OpenGL_Shaders/.vs
+/.vs
+.vs/
