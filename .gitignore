@@ -32,6 +32,7 @@
 *.app
 
 Debug/
+x64/Debug
 /OpenGL_Shaders/.vs
 /.vs
 .vs/
