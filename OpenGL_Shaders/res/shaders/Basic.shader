@@ -28,5 +28,8 @@ void main()
 {
     vec4 texColor = texture(u_Texture, v_TexCoord);
     color = texColor;
+
+    //temp//
+    //color = vec4(1.0);
 };
       

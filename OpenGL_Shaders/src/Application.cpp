@@ -17,6 +17,12 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
+//scales viewport buffer to new size of window.
+void framebuffer_resize_callback(GLFWwindow* window, int fbW, int fbH) 
+{
+    glViewport(0, 0, fbW, fbH);
+}
+
 
 int main(void)
 {
@@ -24,12 +30,20 @@ int main(void)
     if (!glfwInit())
         return -1;
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    const int WINDOW_WIDTH = 640;
+    const int WINDOW_HEIGHT = 480;
+    int framebufferWidth = 0;
+    int framebufferHeight = 0;
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
+    GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "OpenGLWindow", NULL, NULL);
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "OpenGLWindow", NULL, NULL);
+    glfwSetFramebufferSizeCallback(window, framebuffer_resize_callback);  
+
     if (!window)
     {
         glfwTerminate();
@@ -44,14 +58,21 @@ int main(void)
         std::cout << "Error!" << std::endl;
 
     std::cout << glGetString(GL_VERSION) << std::endl;
-    {
+
+    { //scope to close app.
+
+        float test = 6;
+
         float positions[] = //float array of positions.
         {
-            -0.5f, -0.5f, 0.0f, 0.0f,                 // 0
-             0.5f, -0.5f, 1.0f, 0.0f,                // 1
-             0.5f,  0.5f, 1.0f, 1.0f,               // 2
-            -0.5f,  0.5f, 0.0f, 1.0f               // 3   
+             100.0f*test, 100.0f, 0.0f, 0.0f,                 // 0
+             200.0f*test, 100.0f, 1.0f, 0.0f,                // 1
+             200.0f*test, 200.0f, 1.0f, 1.0f,               // 2
+             100.0f*test, 200.0f, 0.0f, 1.0f               // 3  
         };
+
+          
+    
 
         unsigned int indices[] = //index buffer
         {
@@ -60,6 +81,7 @@ int main(void)
         };
 
         GLCall(glEnable(GL_BLEND));
+
         GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));       
 
         unsigned int vao;
@@ -77,15 +99,19 @@ int main(void)
         
 
         IndexBuffer ib(indices, 6);       
+        
+        glm::mat4 proj = glm::ortho(0.f, 1260.f, 0.f, 370.f, -1.0f, 1.0f);                 
+        glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(-300, 50, 0));
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(1, 1, 0)); 
 
-        glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f); //4:3 ar
+        glm::mat4 mvp = proj * view * model;
 
         Shader shader("res/shaders/Basic.shader");
         shader.Bind();
         shader.SetUniform4f("u_Color", 0.9f, 0.3f, 0.8f, 1.0f);
-        shader.SetUniformMat4f("u_MVP", proj);
+        shader.SetUniformMat4f("u_MVP", mvp);
 
-
+       
         
         va.Unbind();
         vb.Unbind();
@@ -99,30 +125,26 @@ int main(void)
         float increment = 0.05f;
         
         while (!glfwWindowShouldClose(window))
-        {            
-            renderer.Clear();
+        {   
+            //update input
+            GLCall(glfwPollEvents());
 
+            //update        
             shader.Bind();
-            shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
-          
+            shader.SetUniformMat4f("u_MVP", mvp);          
             Texture texture("res/textures/1.png");
             texture.Bind();
             shader.SetUniform1i("u_Texture", 0);
 
+            //clear
+            renderer.Clear();
+
+            //draw
             renderer.Draw(va, ib, shader);
-
-            if (r > 1.0f)
-                increment = -0.05f;
-            else if (r < 0.0f)
-                increment = 0.05f;
-
-            r += increment;
-
-            /* Swap front and back buffers */
-            glfwSwapBuffers(window);
-
-            /* Poll for and process events */
-            glfwPollEvents();
+            
+            //end draw
+            GLCall(glfwSwapBuffers(window)); //prevents screan tearing.
+            GLCall(glFlush());            
         }
 
        
