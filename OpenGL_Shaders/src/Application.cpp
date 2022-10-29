@@ -23,6 +23,13 @@ void framebuffer_resize_callback(GLFWwindow* window, int fbW, int fbH)
     glViewport(0, 0, fbW, fbH);
 }
 
+void updateImput(GLFWwindow* window)
+{
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    {
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
+}
 
 int main(void)
 {
@@ -63,10 +70,10 @@ int main(void)
 
         float positions[] = //float array of positions.
         {
-             600.f, 100.0f, 0.0f, 0.0f,
-             1200.f, 100.0f, 1.0f, 0.0f,              
-             1200.f, 200.0f, 1.0f, 1.0f,              
-             600.f, 200.0f, 0.0f, 1.0f
+             -50.f,  -50.f,  0.0f, 0.0f,
+              300.f, -50.f,  1.0f, 0.0f,              
+              300.f,  300.f, 1.0f, 1.0f,
+             -50.f,   300.f, 0.0f, 1.0f
         };        
 
         unsigned int indices[] = //index buffer
@@ -74,64 +81,69 @@ int main(void)
             0, 1, 2,
             3, 2, 0
         };
-
+        //GL OPTIONS
         GLCall(glEnable(GL_BLEND));
+        GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-        GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));       
+        GLCall(glEnable(GL_DEPTH_TEST)); //checks pixel distance.
+        //GLCall(glEnable(GL_CULL_FACE)); //doesnt draw abstructed vertesies. 
+        GLCall(glCullFace(GL_BACK));
+        GLCall(glFrontFace(GL_CCW));
 
-        unsigned int vao;
-        GLCall(glGenVertexArrays(1, &vao));
-        GLCall(glBindVertexArray(vao));
+        GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));        
 
-        VertexArray va;
+        
         VertexBuffer vb(positions, 4 * 4 * sizeof(float));
 
         VertexBufferLayout layout;
         layout.Push<float>(2); 
         layout.Push<float>(2);
-        va.AddBuffer(vb, layout);
+        VertexArray va;
+        va.AddBuffer(vb, layout);        
 
-        
-
-        IndexBuffer ib(indices, 6);       
-        
-        glm::mat4 proj = glm::ortho(0.f, 1260.f, 0.f, 370.f, -1.0f, 1.0f);                 
-        glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(-300, 50, 0));
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(1, 1, 0)); 
-
-        glm::mat4 mvp = proj * view * model;
+        IndexBuffer ib(indices, 6);     
+                
 
         Shader shader("res/shaders/Basic.shader");
         shader.Bind();
-        //shader.SetUniform4f("u_Color", 0.9f, 0.3f, 0.8f, 1.0f);
-        shader.SetUniformMat4f("u_MVP", mvp);       
+       
+
+        Texture texture("res/textures/container.jpg");
+        texture.Bind();
+        shader.SetUniform1i("u_Texture", 0);
+
         
         va.Unbind();
         vb.Unbind();
         ib.Unbind();  
         shader.Unbind();
 
-        Renderer renderer;        
-        
+        Renderer renderer;  
+
+        glm::mat4 modelMatrix(1.f);
+        glm::vec3 translationA(300, 200, 0);        
+        modelMatrix = glm::translate(modelMatrix, glm::vec3(0.f));
+        modelMatrix = glm::rotate(modelMatrix, glm::radians(0.f), glm::vec3(1.f, 0.f, 0.f));
+        modelMatrix = glm::rotate(modelMatrix, glm::radians(0.f), glm::vec3(0.f, 1.f, 0.f));
+        modelMatrix = glm::rotate(modelMatrix, glm::radians(0.f), glm::vec3(1.f, 0.f, 1.f));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(1.f));
+
+
+        glm::mat4 proj = glm::ortho(0.f, 900.f, 0.f, 700.f, -1.0f, 1.0f);
+        glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
+        glm::mat4 mvp = proj * view * modelMatrix;
+                
         while (!glfwWindowShouldClose(window))
         {   
-            //update input
             GLCall(glfwPollEvents());
+            renderer.Clear();
+            updateImput(window);                      
 
-            //update        
             shader.Bind();
             shader.SetUniformMat4f("u_MVP", mvp);
-            Texture texture("res/textures/container.jpg");
-            //Texture texture("res/textures/1.png");
-            texture.Bind();
-            shader.SetUniform1i("u_Texture", 0);
 
-            //clear
-            renderer.Clear();
-
-            //draw
             renderer.Draw(va, ib, shader);
-            
+
             //end draw
             GLCall(glfwSwapBuffers(window)); //prevents screan tearing.
             GLCall(glFlush());            
