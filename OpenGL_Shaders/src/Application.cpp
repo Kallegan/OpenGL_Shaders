@@ -59,20 +59,15 @@ int main(void)
 
     std::cout << glGetString(GL_VERSION) << std::endl;
 
-    { //scope to close app.
-
-        float test = 6;
+    { //scope to close app.        
 
         float positions[] = //float array of positions.
         {
-             100.0f*test, 100.0f, 0.0f, 0.0f,                 // 0
-             200.0f*test, 100.0f, 1.0f, 0.0f,                // 1
-             200.0f*test, 200.0f, 1.0f, 1.0f,               // 2
-             100.0f*test, 200.0f, 0.0f, 1.0f               // 3  
-        };
-
-          
-    
+             600.f, 100.0f, 0.0f, 0.0f,
+             1200.f, 100.0f, 1.0f, 0.0f,              
+             1200.f, 200.0f, 1.0f, 1.0f,              
+             600.f, 200.0f, 0.0f, 1.0f
+        };        
 
         unsigned int indices[] = //index buffer
         {
@@ -108,21 +103,15 @@ int main(void)
 
         Shader shader("res/shaders/Basic.shader");
         shader.Bind();
-        shader.SetUniform4f("u_Color", 0.9f, 0.3f, 0.8f, 1.0f);
-        shader.SetUniformMat4f("u_MVP", mvp);
-
-       
+        //shader.SetUniform4f("u_Color", 0.9f, 0.3f, 0.8f, 1.0f);
+        shader.SetUniformMat4f("u_MVP", mvp);       
         
         va.Unbind();
         vb.Unbind();
         ib.Unbind();  
         shader.Unbind();
 
-        Renderer renderer;
-        
-
-        float r = 0.0f;
-        float increment = 0.05f;
+        Renderer renderer;        
         
         while (!glfwWindowShouldClose(window))
         {   
@@ -131,8 +120,9 @@ int main(void)
 
             //update        
             shader.Bind();
-            shader.SetUniformMat4f("u_MVP", mvp);          
-            Texture texture("res/textures/1.png");
+            shader.SetUniformMat4f("u_MVP", mvp);
+            Texture texture("res/textures/container.jpg");
+            //Texture texture("res/textures/1.png");
             texture.Bind();
             shader.SetUniform1i("u_Texture", 0);
 
